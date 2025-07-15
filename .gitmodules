@@ -1,0 +1,3 @@
+[submodule "DLAI_TFD_PC/tensorflow-1-public"]
+	path = DLAI_TFD_PC/tensorflow-1-public
+	url = https://github.com/https-deeplearning-ai/tensorflow-1-public.git
