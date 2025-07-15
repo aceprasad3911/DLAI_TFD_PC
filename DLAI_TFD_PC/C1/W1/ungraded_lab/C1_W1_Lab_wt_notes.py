@@ -11,7 +11,7 @@ model.compile(optimizer='sgd', loss='mean_squared_error') # loss function measur
 xs = np.array([-1.0, 0.0, 1.0, 2.0, 3.0, 4.0], dtype=float) # represent known data of x and y values in arrays
 ys = np.array([-3.0, -1.0, 1.0, 3.0, 5.0, 7.0], dtype=float)
 
-model.fit(xs, ys, epochs=500) # training takes place in fit command, asking model to figure piut how to fit x values to y values, using loss and optimizer in compile method
+model.fit(xs, ys, epochs=500) # training takes place in fit command, asking model to figure out how to fit x values to y values, using loss and optimizer in compile method
 
 model.predict(np.array([10.0])) # predicts outcome -> supposed to be 19 since relation is y = 2x - 1
                                 # the outcome will be very close to 19 but not = 19
@@ -25,8 +25,6 @@ print(f"model predicted: {model.predict(np.array([10.0]), verbose=0).item():.5f}
 
 # Navigate to each course's directory page to install workbook necessary systems
 
-#E.g.)
-# (.venv1) PS C:\Users\ayuprasa2\PycharmProjects\DLAI_TFD_PC\workbook> cd tensorflow-1-public
-# (.venv1) PS C:\Users\ayuprasa2\PycharmProjects\DLAI_TFD_PC\workbook\tensorflow-1-public>
+# E.g.)
 # cd C1
-# (.venv1) PS C:\Users\ayuprasa2\PycharmProjects\DLAI_TFD_PC\workbook\tensorflow-1-public\C1> pip install -r requirements.txt
+# pip install -r requirements.txt
