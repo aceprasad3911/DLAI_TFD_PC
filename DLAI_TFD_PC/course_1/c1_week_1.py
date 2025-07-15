@@ -22,3 +22,11 @@ model.predict(np.array([10.0])) # predicts outcome -> supposed to be 19 since re
 # Model Prediction output:
 print(f"model predicted: {model.predict(np.array([10.0]), verbose=0).item():.5f}")
 # model predicted: 18.98361
+
+# Navigate to each course's directory page to install workbook necessary systems
+
+#E.g.)
+# (.venv1) PS C:\Users\ayuprasa2\PycharmProjects\DLAI_TFD_PC\workbook> cd tensorflow-1-public
+# (.venv1) PS C:\Users\ayuprasa2\PycharmProjects\DLAI_TFD_PC\workbook\tensorflow-1-public>
+# cd C1
+# (.venv1) PS C:\Users\ayuprasa2\PycharmProjects\DLAI_TFD_PC\workbook\tensorflow-1-public\C1> pip install -r requirements.txt
