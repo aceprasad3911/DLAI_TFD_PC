@@ -32,7 +32,7 @@ model = tf.keras.models.Sequential([
     tf.keras.Input(shape=(28,28)), # images are 28x28 pixels
     # 3 layers to this model as seen below
     tf.keras.layers.Flatten(), # Flatten takes square and turns it into a linear array
-    tf.keras.layers.Dense (128, activation=tf.nn.relu), # Hidden/Middle layer has 128 neurons, turns 784 values representing image into label value
+    tf.keras.layers.Dense (512, activation=tf.nn.relu), # Hidden/Middle layer has 128 neurons, turns 784 values representing image into label value
     # Relu means if x > 0 -> return x, else -> return 0
     tf.keras.layers.Dense(10, activation=tf.nn.softmax) # 10 neurons in layer because 10 classes of clothing in fashion_mnist
     # Softmax takes list of values abd scales (e.g units: 10 -> 1/10 -> 0.1 probability)
@@ -61,13 +61,16 @@ model.compile(optimizer = tf.optimizers.Adam(),
               loss = 'sparse_categorical_crossentropy',
               metrics=['accuracy'])
 
-model.fit(training_images, training_labels, epochs=5)
+print("Training:\n")
+model.fit(training_images, training_labels, epochs=15)
 
+print("\nEvaluating on test set: \n")
 # Evaluate the model on unseen data
 model.evaluate(test_images, test_labels)
 
-classifications = model.predict(test_images)
+print("\nPredicting using test set: \n")
+predictions = model.predict(test_images)
+
 # Output 10 probabilities predicting the value being classified is the indexed value
-# For context, there are 10 labels that all test images fall into
-print(classifications[0])
+print(f"\nTrue class for first image on test set: {test_labels[0]}\nProbability of each class:\n{predictions[0]}")
 
