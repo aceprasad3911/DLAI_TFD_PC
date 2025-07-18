@@ -7,7 +7,7 @@ class MyCallback(tf.keras.callbacks.Callback):
         if logs['loss'] < 0.4:
             # Halts the training when the loss falls below 0.4
             # Stop if threshold is met
-            print('\n\nLoss is low so cancelling training')
+            print('\nLoss is low so cancelling training')
             self.model.stop_training = True
             # callback can be kept in the same file as other code just as a seperate class
 
@@ -26,4 +26,4 @@ model = tf.keras.Sequential([
 ])
 
 model.compile(optimizer=tf.optimizers.Adam(), loss='sparse_categorical_crossentropy', metrics=['accuracy'])
-model.fit(x_train, y_train, epochs=10, callbacks=[MyCallback()])
+model.fit(x_train, y_train, epochs=10, callbacks=[MyCallback()]) # Here is where callback is implements during model training
