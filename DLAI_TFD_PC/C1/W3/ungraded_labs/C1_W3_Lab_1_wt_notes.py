@@ -61,7 +61,7 @@ model = tf.keras.models.Sequential([
 # Print the model summary
 model.summary()
 # Allows us to inspect the layers of the model and see the journey of image through the convolutions
-# Convolution row takes away the furthest right / left column and row due to 1 pixel margin not working on borders
+# Convolution (filter) row takes away the furthest right / left column and row due to 1 pixel margin not working on borders
 # Max Pooling row will halve x and y as only the largest value is taken 2x2 -> 1x1, and will round downwards
 # Flatten will multiply 25 pixels (5x5 after 2 convolution & maxpooling) by 64 filters = 1600
 
