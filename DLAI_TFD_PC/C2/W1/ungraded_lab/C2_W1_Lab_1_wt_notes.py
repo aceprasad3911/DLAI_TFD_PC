@@ -11,6 +11,7 @@ import tensorflow as tf
 
 # Interactive widgets
 from ipywidgets import widgets
+from tensorboard.notebook import display
 
 BASE_DIR = '/tf/cats_and_dogs_filtered'
 
