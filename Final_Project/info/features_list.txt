@@ -1,0 +1,34 @@
+ Feature Set:
+
+Fundamental Metrics
+• P/E Ratio (Price-to-Earnings)
+• EV/EBITDA
+• ROE (Return on Equity)
+• Debt/Equity Ratio:
+• Cash Flow Ratios
+
+Technical Indicators
+• Momentum Indicators
+• Volatility Indicators
+• Volume-Based Indicators (OBV, Accumulation/Distribution Line)
+• Mean Reversion Signals
+
+Graph-Based Features
+• Node Embeddings (from GNNs)
+• Centrality Measures (Degree, Betweenness & Eigenvector Centrality
+• Community Membership
+• Graph Density
+• Clustering Coefficients
+
+Time-Series Specific Features
+• Partial/Auto correlation
+• Hurst Exponent
+• Wavelet Coefficients
+• Statistical Moments of Returns (Skewness, Kurtosis)
+
+Regime Indicators
+• VIX (Volatility Index)
+• Drawdown Markers
+• Yield Curve Slope
+• Credit Spreads
+• Macroeconomic Cycles

@@ -1,0 +1,56 @@
+# requirements.txt
+# This file lists the Python packages required for the project.
+# To install these packages, activate your virtual environment and run:
+# pip install -r requirements.txt
+
+# ML Frameworks
+torch # PyTorch (install with specific CUDA/CPU version if needed, see notes below)
+tensorflow # TensorFlow (install with specific CUDA/CPU version if needed, see notes below)
+torch-geometric # PyTorch Geometric (requires torch)
+
+# Time Series / Econometrics
+statsmodels
+arch
+tsfresh
+pywt
+
+# Numerical Optimization
+scipy
+cvxpy
+
+# Graph Analysis
+networkx
+python-igraph # The package name for igraph in pip
+
+# Data Source / API Access (Python wrappers/libraries for listed APIs)
+# Note: Some data sources like WRDS, QuantConnect are platforms/services, not direct pip installable libraries.
+# For Yahoo Finance, 'yfinance' is a common unofficial wrapper.
+yfinance # Unofficial wrapper for Yahoo Finance data
+alpha_vantage # Python client for Alpha Vantage API
+quandl # Python client for Quandl (Nasdaq Data Link)
+fredapi # Python client for FRED API
+python-edgar # Python client for EDGAR API
+
+# Backtesting & Evaluation
+bt # Backtesting library
+backtrader # Backtesting framework
+
+# Visualization
+matplotlib
+seaborn
+plotly
+
+# General utilities often useful in data science projects
+pandas
+numpy
+
+# PyTorch and TensorFlow Installation:
+
+# torch and tensorflow are listed, but their installation often depends on your hardware (CPU-only vs. GPU with CUDA).
+# For GPU (CUDA) support: You typically need to install them with specific commands from their official websites, which include the CUDA version. For example:
+# pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118 (for PyTorch with CUDA 11.8)
+# pip install tensorflow[and-cuda] (for TensorFlow with CUDA)
+# For CPU-only: pip install torch and pip install tensorflow usually suffice.
+# Recommendation: It's often best to install these two manually first according to your system's GPU setup, and then install the rest of the requirements.txt. If you put them directly in requirements.txt, pip will install the CPU-only versions by default unless you specify otherwise.
+# torch-geometric: This library depends on torch. Ensure torch is installed correctly before or alongside torch-geometric.
+# igraph vs. python-igraph: The Python package for igraph is typically installed via pip install python-igraph.
