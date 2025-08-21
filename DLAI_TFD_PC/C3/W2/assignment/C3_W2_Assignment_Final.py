@@ -239,15 +239,16 @@ def create_model():
     """
 
     ### START CODE HERE ###
+
     # Define your model
     model = tf.keras.Sequential([
-        tf.keras.Input(shape=(MAX_LENGTH,)),  # Input shape matches the output of the vectorizer
-        tf.keras.layers.Embedding(input_dim=VOCAB_SIZE, output_dim=EMBEDDING_DIM, input_length=MAX_LENGTH),
+        tf.keras.Input(shape=(MAX_LENGTH,)),
+        tf.keras.layers.Embedding(input_dim=VOCAB_SIZE, output_dim=EMBEDDING_DIM),
         tf.keras.layers.GlobalAveragePooling1D(),
         tf.keras.layers.Dense(64, activation='relu'),
-        tf.keras.layers.Dense(label_encoder.vocabulary_size(), activation='softmax'),  # Output layer
+        tf.keras.layers.Dense(5, activation='softmax')  # <-- fixed to 5 classes
     ])
-    # Compile model. Set an appropriate loss, optimizer and metrics
+
     model.compile(
         loss='sparse_categorical_crossentropy',
         optimizer='adam',
