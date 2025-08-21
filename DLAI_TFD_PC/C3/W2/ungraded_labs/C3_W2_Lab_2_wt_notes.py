@@ -19,15 +19,14 @@ for item in datastore:
     sentences.append(item['headline'])
     labels.append(item['is_sarcastic'])
 
+# Model Hyperparameters
+
 # Number of examples to use for training
 TRAINING_SIZE = 20000
-
 # Vocabulary size of the tokenizer
 VOCAB_SIZE = 10000
-
 # Maximum length of the padded sequences
 MAX_LENGTH = 32
-
 # Output dimensions of the Embedding layer
 EMBEDDING_DIM = 16
 
