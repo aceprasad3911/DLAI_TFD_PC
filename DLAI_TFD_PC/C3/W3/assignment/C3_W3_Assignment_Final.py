@@ -9,7 +9,7 @@ import unittests
 EMBEDDING_DIM = 100
 MAX_LENGTH = 32
 TRAINING_SPLIT = 0.9
-NUM_BATCHES = 128
+BATCH_SIZE = 128
 
 data_path = "./data/training_cleaned.csv"
 df = pd.read_csv(data_path, header=None)
@@ -48,16 +48,19 @@ def train_val_datasets(dataset):
     """
     ### START CODE HERE ###
 
+    dataset = dataset.shuffle(buffer_size=len(dataset), seed=42)
+
     # Compute the number of sentences that will be used for training (should be an integer)
-    train_size = None
+    train_size = int(TRAINING_SPLIT * len(dataset))
 
     # Split the sentences and labels into train/validation splits
-    train_dataset = None
-    validation_dataset = None
+    train_dataset = dataset.take(train_size)
+    validation_dataset = dataset.skip(train_size)
 
-    # Turn the dataset into a batched dataset with num_batches batches
-    train_dataset = None
-    validation_dataset = None
+    # Turn the dataset into a batched dataset with NUM_BATCHES per batch
+    train_dataset = train_dataset.batch(BATCH_SIZE)
+    validation_dataset = validation_dataset.batch(BATCH_SIZE)
+
 
     ### END CODE HERE ###
 
@@ -92,17 +95,20 @@ def fit_vectorizer(dataset):
 
     # Instantiate the TextVectorization class, defining the necessary arguments alongside their corresponding values
     vectorizer = tf.keras.layers.TextVectorization(
-        None,
+        max_tokens=20000,                 # maximum vocab size
+        output_sequence_length=MAX_LENGTH,
+        output_mode="int"
     )
 
     # Fit the tokenizer to the training sentences
+    vectorizer.adapt(dataset)
 
     ### END CODE HERE ###
 
     return vectorizer
 
 
-# %%
+
 # Get only the texts out of the dataset
 text_only_dataset = train_dataset.map(lambda text, label: text)
 
@@ -187,14 +193,24 @@ def create_model(vocab_size, pretrained_embeddings):
     ### START CODE HERE ###
 
     model = tf.keras.Sequential([
-        tf.keras.Input(None),
-        tf.keras.layers.Embedding(input_dim=None, output_dim=None, weights=[pretrained_embeddings], trainable=None),
+        tf.keras.Input(shape=(MAX_LENGTH,)),  # Input expects padded sequences
+        tf.keras.layers.Embedding(
+            input_dim=vocab_size,
+            output_dim=EMBEDDING_DIM,
+            weights=[pretrained_embeddings],
+            input_length=MAX_LENGTH,
+            trainable=False  # freeze embeddings to avoid overfitting
+        ),
+        tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(64, return_sequences=False)),
+        tf.keras.layers.Dropout(0.5),
+        tf.keras.layers.Dense(64, activation="relu"),
+        tf.keras.layers.Dense(1, activation="sigmoid")  # binary classification
     ])
 
     model.compile(
-        loss=None,
-        optimizer=None,
-        metrics=['accuracy']
+        loss="binary_crossentropy",
+        optimizer="adam",
+        metrics=["accuracy"]
     )
 
     ### END CODE HERE ###
@@ -206,7 +222,7 @@ model = create_model(vocab_size, embeddings_matrix)
 
 # Check parameter count against a reference solution
 unittests.parameter_count(model)
-# %%
+
 # Take an example batch of data
 example_batch = train_dataset_vectorized.take(1)
 

@@ -107,8 +107,8 @@ DENSE_DIM = 64
 model = tf.keras.Sequential([
     tf.keras.Input(shape=(None,)),
     tf.keras.layers.Embedding(subword_tokenizer.vocabulary_size(), EMBEDDING_DIM),
-    tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(LSTM1_DIM, return_sequences=True)),
-    tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(LSTM2_DIM)),
+    tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(LSTM1_DIM, return_sequences=True)), # When LSTM's are stacked, return sequences = True must be set
+    tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(LSTM2_DIM)), # LSTM Model implemented w/t parameter output (LSTM_DIM) wrapped in Bidirectional cell state
     tf.keras.layers.Dense(DENSE_DIM, activation='relu'),
     tf.keras.layers.Dense(1, activation='sigmoid')
 ])
