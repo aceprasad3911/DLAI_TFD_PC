@@ -39,9 +39,13 @@ def fit_vectorizer(corpus):
     ### START CODE HERE ###
 
     # Define the object
-    vectorizer = None
+    vectorizer = tf.keras.layers.TextVectorization(
+        output_mode="int",
+        ragged=True  # ✅ ensures ragged tensor output
+    )
 
     # Adapt it to the corpus
+    vectorizer.adapt(corpus)
 
     ### END CODE HERE ###
 
@@ -71,6 +75,15 @@ def n_gram_seqs(corpus, vectorizer):
     input_sequences = []
 
     ### START CODE HERE ###
+
+    for line in corpus:
+        # Vectorize the line (returns RaggedTensor -> convert to dense list)
+        token_list = vectorizer(line).numpy()
+
+        # Build n-grams (skip the single-word one)
+        for i in range(2, len(token_list) + 1):
+            n_gram = tf.constant(token_list[:i], dtype=tf.int64)
+            input_sequences.append(n_gram)
 
     ### END CODE HERE ###
 
@@ -116,7 +129,11 @@ def pad_seqs(input_sequences, max_sequence_len):
 
     ### START CODE HERE ###
 
-    padded_sequences = None
+    padded_sequences = tf.keras.utils.pad_sequences(
+        input_sequences,
+        maxlen=max_sequence_len,
+        padding="pre"
+    )
 
     ### END CODE HERE ###
 
@@ -154,18 +171,20 @@ def features_and_labels_dataset(input_sequences, total_words):
     """
     ### START CODE HERE ###
 
-    # Define the features an labels as discussed in the lectures
-    features = None
-    labels = None
+    # Features: all but last token
+    features = input_sequences[:, :-1]
+
+    # Labels: last token
+    labels = input_sequences[:, -1]
 
     # One hot encode the labels
-    one_hot_labels = None
+    one_hot_labels = tf.keras.utils.to_categorical(labels, num_classes=total_words)
 
-    # Build the dataset with the features and one hot encoded labels
-    dataset = None
+    # Build dataset
+    dataset = tf.data.Dataset.from_tensor_slices((features, one_hot_labels))
 
-    # Batch de dataset with number of batches given by the global variable
-    batched_dataset = None
+    # ✅ Keep incomplete batches
+    batched_dataset = dataset.batch(NUM_BATCHES)
 
     ### END CODE HERE ##
 
@@ -202,16 +221,30 @@ def create_model(total_words, max_sequence_len):
     Returns:
        (tf.keras Model): the text generator model
     """
-    model = tf.keras.Sequential()
 
-    ### START CODE HERE ###
-    model.add(tf.keras.layers.Input(None))
-    model.add(tf.keras.layers.Embedding(None, None))
+    def create_model(total_words, max_sequence_len):
+        """
+        Creates a text generator model
 
-    # Compile the model
-    model.compile(loss=None,
-                  optimizer=None,
-                  metrics=None)
+        Args:
+            total_words (int): size of the vocabulary for the Embedding layer input
+            max_sequence_len (int): length of the input sequences
+
+        Returns:
+           (tf.keras Model): the text generator model
+        """
+        model = tf.keras.Sequential([
+            tf.keras.layers.Input(shape=(max_sequence_len - 1,)),  # Explicit input shape
+            tf.keras.layers.Embedding(total_words, EMBEDDING_DIM),
+            tf.keras.layers.LSTM(256),
+            tf.keras.layers.Dense(total_words, activation="softmax")
+        ])
+
+        model.compile(
+            loss="categorical_crossentropy",
+            optimizer="adam",
+            metrics=["accuracy"]
+        )
 
     ### END CODE HERE ###
 
@@ -276,3 +309,4 @@ for _ in range(next_words):
     seed_text += " " + output_word
 
 print(seed_text)
+

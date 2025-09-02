@@ -15,7 +15,7 @@ print(corpus)
 vectorize_layer = tf.keras.layers.TextVectorization()
 
 # Build the vocabulary
-vectorize_layer.adapt(corpus)
+vectorize_layer.adapt(corpus)  # Adapt TextVectorization layer to corpus
 
 # Get the vocabulary and its size
 vocabulary = vectorize_layer.get_vocabulary()
@@ -25,31 +25,26 @@ print(f'{vocabulary}')
 print(f'{vocab_size}')
 
 # Initialize the sequences list
-input_sequences = []
-
+input_sequences = []  # Training X's in form of Python List
 # Loop over every line
 for line in corpus:
-
-	# Generate the integer sequence of the current line
-	sequence = vectorize_layer(line).numpy()
-
-	# Loop over the line several times to generate the subphrases
-	for i in range(1, len(sequence)):
-
-		# Generate the subphrase
-		n_gram_sequence = sequence[:i+1]
-
-		# Append the subphrase to the sequences list
-		input_sequences.append(n_gram_sequence)
+    # Generate the integer sequence of the current line
+    sequence = vectorize_layer(line).numpy() # For each line in sequence
+    # Loop over the line several times to generate the subphrases
+    for i in range(1, len(sequence)):
+        # Generate the subphrase
+        n_gram_sequence = sequence[:i + 1]
+        # Append the subphrase to the sequences list
+        input_sequences.append(n_gram_sequence)
 
 # Get the length of the longest line
 max_sequence_len = max([len(x) for x in input_sequences])
 
-# Pad all sequences
+# Pad all sequences - pre pad sequence to extract label easier
 input_sequences = np.array(tf.keras.utils.pad_sequences(input_sequences, maxlen=max_sequence_len, padding='pre'))
 
 # Create inputs and label by splitting the last token in the subphrases
-xs, labels = input_sequences[:,:-1],input_sequences[:,-1]
+xs, labels = input_sequences[:, :-1], input_sequences[:, -1]
 
 # Convert the label into one-hot arrays
 ys = tf.keras.utils.to_categorical(labels, num_classes=vocab_size)
@@ -63,21 +58,23 @@ token_list = []
 
 # Look up the indices of each word and append to the list
 for word in sentence:
-  token_list.append(vocabulary.index(word))
+    token_list.append(vocabulary.index(word))
 
 # Print the token list
 print(token_list)
 
+
 def sequence_to_text(sequence, vocabulary):
-  '''utility to convert integer sequence back to text'''
+    '''utility to convert integer sequence back to text'''
 
-  # Loop through the integer sequence and look up the word from the vocabulary
-  words = [vocabulary[index] for index in sequence]
+    # Loop through the integer sequence and look up the word from the vocabulary
+    words = [vocabulary[index] for index in sequence]
 
-  # Combine the words into one sentence
-  text = tf.strings.reduce_join(words, separator=' ').numpy().decode()
+    # Combine the words into one sentence
+    text = tf.strings.reduce_join(words, separator=' ').numpy().decode()
 
-  return text
+    return text
+
 
 # Pick element
 elem_number = 6
@@ -103,10 +100,10 @@ print(f'index of label: {np.argmax(ys[elem_number])}')
 
 # Build the model
 model = tf.keras.models.Sequential([
-            tf.keras.Input(shape=(max_sequence_len-1,)),
-            tf.keras.layers.Embedding(vocab_size, 64),
-            tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(20)),
-            tf.keras.layers.Dense(vocab_size, activation='softmax')
+    tf.keras.Input(shape=(max_sequence_len - 1,)), # Subtract 1 because last word is cropped off to get label
+    tf.keras.layers.Embedding(vocab_size, 64),
+    tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(20)),
+    tf.keras.layers.Dense(vocab_size, activation='softmax')
 ])
 
 # Use categorical crossentropy because this is a multi-class problem
@@ -120,12 +117,14 @@ history = model.fit(xs, ys, epochs=500)
 
 import matplotlib.pyplot as plt
 
+
 # Plot utility
 def plot_graphs(history, string):
-  plt.plot(history.history[string])
-  plt.xlabel("Epochs")
-  plt.ylabel(string)
-  plt.show()
+    plt.plot(history.history[string])
+    plt.xlabel("Epochs")
+    plt.ylabel(string)
+    plt.show()
+
 
 # Visualize the accuracy
 plot_graphs(history, 'accuracy')
@@ -139,26 +138,25 @@ next_words = 100
 # Loop until desired length is reached
 for _ in range(next_words):
 
-	# Convert the seed text to an integer sequence
-	sequence = vectorize_layer(seed_text)
+    # Convert the seed text to an integer sequence
+    sequence = vectorize_layer(seed_text)
 
-	# Pad the sequence
-	sequence = tf.keras.utils.pad_sequences([sequence], maxlen=max_sequence_len-1, padding='pre')
+    # Pad the sequence
+    sequence = tf.keras.utils.pad_sequences([sequence], maxlen=max_sequence_len - 1, padding='pre')
 
-	# Feed to the model and get the probabilities for each index
-	probabilities = model.predict(sequence, verbose=0)
+    # Feed to the model and get the probabilities for each index
+    probabilities = model.predict(sequence, verbose=0)
 
-	# Get the index with the highest probability
-	predicted = np.argmax(probabilities, axis=-1)[0]
+    # Get the index with the highest probability
+    predicted = np.argmax(probabilities, axis=-1)[0]
 
-	# Ignore if index is 0 because that is just the padding.
-	if predicted != 0:
+    # Ignore if index is 0 because that is just the padding.
+    if predicted != 0:
+        # Look up the word associated with the index.
+        output_word = vocabulary[predicted]
 
-		# Look up the word associated with the index.
-		output_word = vocabulary[predicted]
-
-		# Combine with the seed text
-		seed_text += " " + output_word
+        # Combine with the seed text
+        seed_text += " " + output_word
 
 # Print the result
 print(seed_text)
@@ -172,30 +170,29 @@ next_words = 100
 # Loop until desired length is reached
 for _ in range(next_words):
 
-	# Convert the seed text to an integer sequence
-  sequence = vectorize_layer(seed_text)
+    # Convert the seed text to an integer sequence
+    sequence = vectorize_layer(seed_text)
 
-	# Pad the sequence
-  sequence = tf.keras.utils.pad_sequences([sequence], maxlen=max_sequence_len-1, padding='pre')
+    # Pad the sequence
+    sequence = tf.keras.utils.pad_sequences([sequence], maxlen=max_sequence_len - 1, padding='pre')
 
-	# Feed to the model and get the probabilities for each index
-  probabilities = model.predict(sequence, verbose=0)
+    # Feed to the model and get the probabilities for each index
+    probabilities = model.predict(sequence, verbose=0)
 
-  # Pick a random number from [1,2,3]
-  choice = np.random.choice([1,2,3])
+    # Pick a random number from [1,2,3]
+    choice = np.random.choice([1, 2, 3])
 
-  # Sort the probabilities in ascending order
-  # and get the random choice from the end of the array
-  predicted = np.argsort(probabilities)[0][-choice]
+    # Sort the probabilities in ascending order
+    # and get the random choice from the end of the array
+    predicted = np.argsort(probabilities)[0][-choice]
 
-	# Ignore if index is 0 because that is just the padding.
-  if predicted != 0:
+    # Ignore if index is 0 because that is just the padding.
+    if predicted != 0:
+        # Look up the word associated with the index.
+        output_word = vocabulary[predicted]
 
-    # Look up the word associated with the index.
-    output_word = vocabulary[predicted]
-
-    # Combine with the seed text
-    seed_text += " " + output_word
+        # Combine with the seed text
+        seed_text += " " + output_word
 
 # Print the result
 print(seed_text)
