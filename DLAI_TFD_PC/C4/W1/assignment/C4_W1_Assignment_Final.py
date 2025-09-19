@@ -66,7 +66,7 @@ WINDOW_SIZE = 50
 
 ### Exercise 1: train_val_split
 # GRADED FUNCTION: train_val_split
-def train_val_split(time, series):
+def train_val_split(time, series, split_time=1100):
     """Split time series into train and validation sets
 
     Args:
@@ -78,12 +78,14 @@ def train_val_split(time, series):
                                                           series values for train and validation
     """
     ### START CODE HERE ###
+
     # Get train split
-    time_train = None
-    series_train = None
+    time_train = time[:split_time]
+    series_train = series[:split_time]
+
     # Get validation split
-    time_valid = None
-    series_valid = None
+    time_valid = time[split_time:]
+    series_valid = series[split_time:]
     ### END CODE HERE ###
 
     return time_train, series_train, time_valid, series_valid
@@ -115,8 +117,8 @@ def compute_metrics(true_series, forecast):
         (np.float64, np.float64): MSE and MAE
     """
     ### START CODE HERE ###
-    mse = None
-    mae = None
+    mse = tf.keras.metrics.mse(true_series, forecast).numpy()
+    mae = tf.keras.metrics.mae(true_series, forecast).numpy()
     ### END CODE HERE ###
 
     return mse, mae
@@ -138,7 +140,7 @@ unittests.test_compute_metrics(compute_metrics)
 # GRADED VARIABLE
 
 ### START CODE HERE ###
-naive_forecast = None  # get naive forecast
+naive_forecast = SERIES[SPLIT_TIME - 1:-1]  # get naive forecast
 ### END CODE HERE ###
 
 # Look into naive_forecast
@@ -180,11 +182,9 @@ def moving_average_forecast(series, window_size):
     forecast = []
 
     ### START CODE HERE ###
-    for time in None:
-        forecast.append(None)
-
-    # Convert to a numpy array.
-    np_forecast = None
+    for time in range(len(series) - window_size):
+        forecast.append(series[time:time + window_size].mean())
+    np_forecast = np.array(forecast)
 
     ### END CODE HERE ###
 
@@ -215,9 +215,9 @@ print(f"mse: {mse:.2f}, mae: {mae:.2f} for moving average forecast")
 
 ### START CODE HERE ###
 # Differentiate the series. Use a differentiation step according to the series seasonality
-diff_series = None
-# Get the appropiate time indexes
-diff_time = None
+# Differencing with lag equal to seasonality period (365)
+diff_series = SERIES[365:] - SERIES[:-365]
+diff_time = TIME[365:]
 ### END CODE HERE ###
 
 print(f"Whole SERIES has {len(SERIES)} elements so the differencing should have {len(SERIES) - 365} elements\n")
@@ -234,11 +234,11 @@ unittests.test_diff_series(diff_series)
 
 ### START CODE HERE ###
 
-# Apply the moving avg to diff series. Use a correct window_size
-diff_moving_avg = moving_average_forecast(None, None)
+# Apply moving average on differenced series
+diff_moving_avg = moving_average_forecast(diff_series, WINDOW_SIZE)
 
-# Perform the correct slicing
-diff_moving_avg = diff_moving_avg[None:]
+# Align with validation period
+diff_moving_avg = diff_moving_avg[SPLIT_TIME - 365 - WINDOW_SIZE:]
 
 ### END CODE HERE ###
 
@@ -258,10 +258,14 @@ unittests.test_diff_moving_avg(diff_moving_avg)
 
 # Slice the whole SERIES to get the past values.
 # You want to get the value from the previous period for each forecasted value
-past_series = SERIES[None:None]
+# Past values (the series shifted back one seasonal period)
+# Take the last 361 values to match validation length
+past_series = SERIES[SPLIT_TIME - 365:][:- (len(SERIES) - (SPLIT_TIME + len(series_valid)))]
+# or simply:
+past_series = SERIES[SPLIT_TIME - 365: SPLIT_TIME - 365 + len(series_valid)]
 
 # Add the past to the moving average of diff series
-diff_moving_avg_plus_past = past_series + None
+diff_moving_avg_plus_past = past_series + diff_moving_avg
 
 ### END CODE HERE ###
 
@@ -283,9 +287,15 @@ unittests.test_diff_moving_avg_plus_past(diff_moving_avg_plus_past)
 
 ### Exercise 8: smooth_past_series
 # GRADED VARIABLE
+
 ### START CODE HERE ###
-# Perform the correct split of SERIES, remember to use a window_size=10
-smooth_past_series = moving_average_forecast(SERIES[None:None], None)
+
+# Slice SERIES so the moving average output has exactly len(series_valid) elements
+start = SPLIT_TIME - 365 - 5
+end = len(SERIES) - (365 - 6)
+
+# Compute the smoothed past series
+smooth_past_series = moving_average_forecast(SERIES[start:end], window_size=11)
 ### END CODE HERE ###
 
 print(f"smooth past series has shape: {smooth_past_series.shape}\n")

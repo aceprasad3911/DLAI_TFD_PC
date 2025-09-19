@@ -348,3 +348,9 @@ series[200:] = series2[200:]
 
 # Plot the result
 plot_series(time[:300], series[:300])
+
+# errors = forecast - actual
+# mse (mean squared error) = np.square(errors).mean() - gets rid of negative values
+# rmse (root mean squared error) = np.sqrt(mse) - root of mse value (gets error at same scale but positive)
+# mae (mean absolute error)  = np.abs(errors).mean()
+# mape (mean absolute percentage error) = np.abs(errors / x_valid).mean()

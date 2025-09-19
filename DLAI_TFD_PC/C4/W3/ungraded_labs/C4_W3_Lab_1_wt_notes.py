@@ -161,8 +161,7 @@ window_size = 20
 batch_size = 32
 shuffle_buffer_size = 1000
 
-def windowed_dataset(series, window_size, batch_size, shuffle_buffer):
-    """Generates dataset windows
+d nerates dataset windows
 
     Args:
       series (array of float) - contains the values of the time series
