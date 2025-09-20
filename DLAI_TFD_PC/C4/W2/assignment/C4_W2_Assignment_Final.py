@@ -106,23 +106,24 @@ def windowed_dataset(series, window_size, shuffle=True):
     ### START CODE HERE ###
     # Create dataset from the series.
     # HINT: use an appropriate method from the tf.data.Dataset object
-    dataset = None
+
+    dataset = tf.data.Dataset.from_tensor_slices(series)
 
     # Slice the dataset into the appropriate windows
-    dataset = None
+    dataset = dataset.window(window_size + 1, shift=1, drop_remainder=True)
 
     # Flatten the dataset
-    dataset = None
+    dataset = dataset.flat_map(lambda window: window.batch(window_size + 1))
 
     # Shuffle it
     if shuffle:  # For testing purposes
-        dataset = None
+        dataset = dataset.shuffle(SHUFFLE_BUFFER_SIZE)
 
         # Split it into the features and labels.
-    dataset = None
+    dataset = dataset.map(lambda window: (window[:-1], window[-1]))
 
     # Batch it
-    dataset = None
+    dataset = dataset.batch(BATCH_SIZE)
 
     ### END CODE HERE ###
 
@@ -169,12 +170,14 @@ def create_model(window_size):
     ### START CODE HERE ###
 
     model = tf.keras.models.Sequential([
-        tf.keras.Input(shape=None),
-
+        tf.keras.Input(shape=(window_size,)),
+        tf.keras.layers.Dense(64, activation="relu"),
+        tf.keras.layers.Dense(32, activation="relu"),
+        tf.keras.layers.Dense(1)
     ])
 
-    model.compile(loss=None,
-                  optimizer=None)
+    model.compile(loss="mse",
+                   optimizer=tf.keras.optimizers.SGD(learning_rate=1e-6, momentum=0.9))
 
     ### END CODE HERE ###
 

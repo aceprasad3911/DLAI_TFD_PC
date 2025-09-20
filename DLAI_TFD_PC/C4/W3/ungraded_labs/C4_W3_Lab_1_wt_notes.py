@@ -2,8 +2,10 @@ import tensorflow as tf
 import numpy as np
 import matplotlib.pyplot as plt
 
-# Utilities
 
+# %% md
+## Utilities
+# %%
 def plot_series(time, series, format="-", start=0, end=None):
     """
     Visualizes time series data
@@ -123,8 +125,10 @@ def noise(time, noise_level=1, seed=None):
 
     return noise
 
-## Generate the Synthetic Data
 
+# %% md
+## Generate the Synthetic Data
+# %%
 # Parameters
 time = np.arange(4 * 365 + 1, dtype="float32")
 baseline = 10
@@ -140,9 +144,9 @@ series += noise(time, noise_level, seed=42)
 
 # Plot the results
 plot_series(time, series)
-
+# %% md
 ## Split the Dataset
-
+# %%
 # Define the split time
 split_time = 1000
 
@@ -153,15 +157,38 @@ x_train = series[:split_time]
 # Get the validation set
 time_valid = time[split_time:]
 x_valid = series[split_time:]
-
+# %% md
 ## Prepare Features and Labels
-
+# %%
 # Parameters
 window_size = 20
 batch_size = 32
 shuffle_buffer_size = 1000
+# %% md
+You
+will
+be
+using
+`SimpleRNN`
+layers
+later and as mentioned in its[documentation](
+    https: // www.tensorflow.org / api_docs / python / tf / keras / layers / SimpleRNN
+# call_arguments), these expect a 3-dimensional tensor input with the shape `[batch, timesteps, feature`]. With that, you need to reshape your window from `(32, 20)` to `(32, 20, 1)`. This means the 20 data points in the window will be mapped to 20 timesteps of the RNN. To implement this, you will add an `expand_dims()` to the `windowed_dataset()` function you used in the previous labs.
 
-d nerates dataset windows
+_Note: Technically, you
+will
+only
+need
+this
+extra
+line if you
+don
+'t specify the input shape as you will do later when you build the model. Nonetheless, it is best practice to define transformations like this, especially in data pipelines. It can help make debugging easier in case you have problems later on._
+# %%
+
+
+def windowed_dataset(series, window_size, batch_size, shuffle_buffer):
+    """Generates dataset windows
 
     Args:
       series (array of float) - contains the values of the time series
@@ -199,29 +226,129 @@ d nerates dataset windows
 
     return dataset
 
+
+# %%
 # Generate the dataset windows
 dataset = windowed_dataset(x_train, window_size, batch_size, shuffle_buffer_size)
-
+# %%
 # Print shapes of feature and label
 for window in dataset.take(1):
     print(f'shape of feature: {window[0].shape}')
     print(f'shape of label: {window[1].shape}')
+# %% md
+## Build the Model
 
-# Build the Model
-model_tune = tf.keras.models.Sequential([
-    tf.keras.Input(shape=(window_size, 1)),
-    tf.keras.layers.SimpleRNN(40, return_sequences=True),
-    tf.keras.layers.SimpleRNN(40),
-    tf.keras.layers.Dense(1),
-    tf.keras.layers.Lambda(lambda x: x * 100.0)
+Your
+model is composed
+mainly
+of[SimpleRNN](https: // www.tensorflow.org / api_docs / python / tf / keras / layers / SimpleRNN) layers.As
+mentioned in the
+lectures, this
+type
+of
+RNN
+simply
+routes
+its
+output
+back
+to
+the
+input.You
+will
+stack
+two
+of
+these
+layers in your
+model
+so
+the
+first
+one
+should
+have
+`return_sequences`
+set
+to
+`True`.
+
+Normally, you
+can
+just
+have
+a
+`Dense`
+layer
+output as shown in the
+previous
+labs.However, you
+can
+help
+the
+training
+by
+scaling
+up
+the
+output
+to
+around
+the
+same
+figures as your
+labels.This
+will
+depend
+on
+the[activation
+functions](https
+           : // en.wikipedia.org/wiki/Activation_function  # Table_of_activation_functions) you used in your model. `SimpleRNN` uses *tanh* by default and that has an output range of `[-1,1]`. You will use a `Lambda` layer to scale the output by 100 before it adjusts the layer weights. `Lambda` layers can be a useful tool to experiment with simple transformations like this. Feel free to remove this layer later after this lab and see what results you get.
+           # %%
+           # Build the Model
+           model_tune = tf.keras.models.Sequential([
+           tf.keras.Input(shape=(window_size, 1)),
+tf.keras.layers.SimpleRNN(40, return_sequences=True),
+tf.keras.layers.SimpleRNN(40),
+tf.keras.layers.Dense(1),
+tf.keras.layers.Lambda(lambda x: x * 100.0)
 ])
 
 # Print the model summary
 model_tune.summary()
-
-
+# %% md
 ## Tune the Learning Rate
 
+You
+will
+then
+tune
+the
+learning
+rate as before.You
+will
+define
+a
+learning
+rate
+schedule
+that
+changes
+this
+hyperparameter
+dynamically.You
+will
+use
+the[Huber
+Loss](https: // en.wikipedia.org/wiki/Huber_loss) as your
+loss
+function
+to
+minimize
+sensitivity
+to
+outliers.
+# %%
 # Set the learning rate scheduler
 lr_schedule = tf.keras.callbacks.LearningRateScheduler(
     lambda epoch: 1e-8 * 10 ** (epoch / 20))
@@ -234,7 +361,17 @@ model_tune.compile(loss=tf.keras.losses.Huber(), optimizer=optimizer)
 
 # Train the model
 history = model_tune.fit(dataset, epochs=100, callbacks=[lr_schedule])
-
+# %% md
+You
+can
+visualize
+the
+results and pick
+an
+optimal
+learning
+rate.
+# %%
 # Define the learning rate array
 lrs = 1e-8 * (10 ** (np.arange(100) / 20))
 
@@ -252,7 +389,36 @@ plt.tick_params('both', length=10, width=1, which='both')
 
 # Set the plot boundaries
 plt.axis([1e-8, 1e-3, 0, 50])
-
+# %% md
+You
+can
+change
+the
+boundaries
+of
+the
+graph if you
+want
+to
+zoom in.The
+cell
+below
+chooses
+a
+narrower
+range
+so
+you
+can
+see
+more
+clearly
+where
+the
+graph
+becomes
+unstable.
+# %%
 # Set the figure size
 plt.figure(figsize=(10, 6))
 
@@ -267,9 +433,18 @@ plt.tick_params('both', length=10, width=1, which='both')
 
 # Set the plot boundaries
 plt.axis([1e-7, 1e-4, 0, 20])
-
+# %% md
 ## Train the Model
 
+You
+can
+then
+declare
+the
+model
+again and train
+with the learning rate you picked.It is set to `1e-6`by default but feel free to change it.
+# %%
 # Build the model
 model = tf.keras.models.Sequential([
 tf.keras.Input(shape=(window_size, 1)),
@@ -292,9 +467,13 @@ model.compile(loss=tf.keras.losses.Huber(),
 
 # Train the model
 history = model.fit(dataset, epochs=100)
-
+# %% md
 ## Model Prediction
 
+Now
+it
+'s time to generate the model predictions for the validation set time range. The model is a lot bigger than the ones you used before and the sequential nature of RNNs (i.e. inputs go through a series of time steps as opposed to parallel processing) can make predictions a bit slow. You can observe this when using the code you ran in the previous lab. This will take about a minute to complete.
+# %%
 # Initialize a list
 forecast = []
 
@@ -310,6 +489,42 @@ results = np.array(forecast).squeeze()
 
 # Plot the results
 plot_series(time_valid, (x_valid, results))
+# %% md
+You
+can
+optimize
+this
+step
+by
+leveraging
+Tensorflow
+models
+' capability to process batches. Instead of running the for-loop above which processes a single window at a time, you can pass in an entire batch of windows and let the model process that in parallel.
+
+The
+function
+below
+does
+just
+that.You
+will
+notice
+that
+it
+almost
+mirrors
+the
+`windowed_dataset()`
+function
+but
+it
+does
+not shuffle
+the
+windows.That
+'s because we want the output to be in its proper sequence so we can compare it properly to the validation set.
+# %%
+
 
 def model_forecast(model, series, window_size, batch_size):
     """Uses an input model to generate predictions on data windows
@@ -345,6 +560,44 @@ def model_forecast(model, series, window_size, batch_size):
     return forecast
 
 
+# %% md
+You
+can
+run
+the
+function
+below
+to
+use
+the
+function.Notice
+that
+the
+predictions
+are
+generated
+almost
+instantly.
+
+*Note: You
+might
+notice
+that
+the
+first
+line
+slices
+the
+`series`
+at
+`split_time - window_size: -1
+` which is a
+bit
+different
+from the slower
+
+for -loop code.That is because we want the model to have its last prediction to align with the last point of the validation set (i.e.`t=1460`).You were able to do that with the slower for -loop code by specifying the for -loop's `range()`. With the more efficient function above, you don't have that mechanism so you instead just remove the last point when slicing the `series`.If you don't, then the function will generate a prediction at `t=1461` which is outside the validation set range.*
+# %%
 # Only needed in this lab. Reset the model but keep the trained weights to prepare for batched inputs.
 model.compile(loss=tf.keras.losses.Huber(),
               optimizer=optimizer,
@@ -361,7 +614,86 @@ results = forecast.squeeze()
 
 # Plot the results
 plot_series(time_valid, (x_valid, results))
-
+# %% md
+You
+can
+then
+compute
+the
+MSE and MAE.You
+can
+compare
+the
+results
+here
+when
+using
+other
+RNN
+architectures
+which
+you
+'ll do in the next lab.
+# %%
 # Compute the MSE and MAE
 print(tf.keras.metrics.mse(x_valid, results).numpy())
 print(tf.keras.metrics.mae(x_valid, results).numpy())
+# %% md
+## Wrap Up
+
+In
+the
+next
+lab, you
+will
+explore
+a
+similar
+architecture
+but
+using
+LSTMs.Before
+doing
+so, run
+the
+cell
+below
+to
+free
+up
+resources.You
+might
+see
+a
+pop - up
+about
+restarting
+the
+kernel
+afterwards.You
+can
+safely
+ignore
+it and just
+press
+Ok.You
+can
+then
+close
+this
+lab, then
+go
+back
+to
+the
+classroom
+for the next lecture.See you there!
+# %%
+# Shutdown the kernel to free up resources.
+# Note: You can expect a pop-up when you run this cell. You can safely ignore that and just press `Ok`.
+
+from IPython import get_ipython
+
+k = get_ipython().kernel
+
+k.do_shutdown(restart=False)

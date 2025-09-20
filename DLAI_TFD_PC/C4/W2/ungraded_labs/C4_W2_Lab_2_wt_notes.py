@@ -178,19 +178,20 @@ def windowed_dataset(series, window_size, batch_size, shuffle_buffer):
     """
 
     # Generate a TF Dataset from the series values
-    dataset = tf.data.Dataset.from_tensor_slices(series)
+    dataset = tf.data.Dataset.from_tensor_slices(series) # Data passed into data set using from_tensor_slices(series)
 
-    # Window the data but only take those with the specified size
+    # Window the data but only take those with the specified size, slicing data into appropriate windows alongside drop_remainder=True keeping all windows the same size
     dataset = dataset.window(window_size + 1, shift=1, drop_remainder=True)
 
-    # Flatten the windows by putting its elements in a single batch
+    # Flatten the windows by putting its elements in a single batch, size = window size + 1
     dataset = dataset.flat_map(lambda window: window.batch(window_size + 1))
 
     # Create tuples with features and labels
-    dataset = dataset.map(lambda window: (window[:-1], window[-1]))
+    dataset = dataset.map(lambda window: (window[:-1], window[-1])) # Dataset split into x's (features) & y's (labels)
 
     # Shuffle the windows
     dataset = dataset.shuffle(shuffle_buffer)
+    # Shuffle buffer will fill the buffer with first 1000 elements, pick 1 at random, and replace it with 1001st element, before repeating process
 
     # Create batches of windows
     dataset = dataset.batch(batch_size)
@@ -212,12 +213,13 @@ print(f'shape of second element: {windows[1].shape}')
 
 ## Build and compile the model
 
-# Build the single layer neural network
+# Build the single dense layer neural network
 l0 = tf.keras.layers.Dense(1)
 model = tf.keras.models.Sequential([
-    tf.keras.Input(shape=(window_size,)),
+    tf.keras.Input(shape=(window_size,)), # Input shape set to window size for uniformity
     l0
 ])
+# l0 (layer 0) is variable that layer is passed through to extract learned weights from (easier to directly call layer in weight extraction)
 
 # Print the initial layer weights
 print("Layer weights: \n {} \n".format(l0.get_weights()))
@@ -226,7 +228,9 @@ print("Layer weights: \n {} \n".format(l0.get_weights()))
 model.summary()
 
 # Set the training parameters
-model.compile(loss="mse", optimizer=tf.keras.optimizers.SGD(learning_rate=1e-6, momentum=0.9))
+model.compile(
+    loss="mse", # mean squared error for loss function
+    optimizer=tf.keras.optimizers.SGD(learning_rate=1e-6, momentum=0.9)) # SGD = stochastic gradient descent
 
 ## Train the Model
 
@@ -234,7 +238,11 @@ model.compile(loss="mse", optimizer=tf.keras.optimizers.SGD(learning_rate=1e-6, 
 model.fit(dataset, epochs=100)
 
 # Print the layer weights
-print("Layer weights {}".format(l0.get_weights()))
+print("Layer weights {}".format(l0.get_weights())) # easy layer referral when extracting model weights
+
+# Ouput: first array has 20 values and second array has only one value.
+# This is because the network has learned a linear regression to fit the values as best it can.
+# Each of the values in the first array can be seen as the weights for the 20 values in x w/t second array = b value.
 
 ## Model Prediction
 
@@ -249,15 +257,17 @@ print(f'shape of series[0:20][np.newaxis]: {np.expand_dims(series[0:20], axis=0)
 
 # Sample model prediction
 print(f'model prediction: {model.predict(series[0:20][np.newaxis])}')
+# predicts next time step after 20 based on 0-20 values, with numpy new axis reshaping them into input dimension used by the model
+# Output: array([[49.08478]], dtype=flot32) = model prediction based on pre-fed data (0-20)
 
-# Initialize a list
+# Initialize an empty list for forecasted values
 forecast = []
 
 # Use the model to predict data points per window size
 for time in range(len(series) - window_size):
     forecast.append(model.predict(series[time:time + window_size][np.newaxis], verbose=0))
 
-# Slice the points that are aligned with the validation set
+# Slice the points that are aligned with the validation set, so as not to use the training set
 forecast = forecast[split_time - window_size:]
 
 # Compare number of elements in the predictions and the validation set
@@ -274,6 +284,6 @@ results = np.array(forecast).squeeze()
 # Overlay the results with the validation set
 plot_series(time_valid, (x_valid, results))
 
-# Compute the metrics
+# Compute the error metrics in comparison to actual data
 print(tf.keras.metrics.mse(x_valid, results).numpy())
 print(tf.keras.metrics.mae(x_valid, results).numpy())

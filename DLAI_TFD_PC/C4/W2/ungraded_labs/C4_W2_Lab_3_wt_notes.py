@@ -250,9 +250,10 @@ model_tune = tf.keras.models.Sequential([
     tf.keras.layers.Dense(1)
 ])
 
-# Set the learning rate scheduler
+# Set the learning rate scheduler callback
 lr_schedule = tf.keras.callbacks.LearningRateScheduler(
     lambda epoch: 1e-8 * 10 ** (epoch / 20))
+# will be called at the end of each epoch, changing learning rate to certain value based on epoch number
 
 # Initialize the optimizer
 optimizer = tf.keras.optimizers.SGD(momentum=0.9)
@@ -262,6 +263,7 @@ model_tune.compile(loss="mse", optimizer=optimizer)
 
 # Train the model
 history = model_tune.fit(dataset, epochs=100, callbacks=[lr_schedule])
+# learning rate scheduler set in callback function of model.fit
 
 # Define the learning rate array
 lrs = 1e-8 * (10 ** (np.arange(100) / 20))
@@ -274,8 +276,9 @@ plt.grid(True)
 
 # Plot the loss in log scale
 plt.semilogx(lrs, history.history["loss"])
+# Find point where loss is lowest per epoch then set model learning rate to this value and retrain
 
-# Increase the tickmarks size
+# Increase the tick marks size
 plt.tick_params('both', length=10, width=1, which='both')
 
 # Set the plot boundaries
@@ -289,7 +292,7 @@ model_tune = tf.keras.models.Sequential([
     tf.keras.layers.Dense(1)
 ])
 
-# Set the optimizer with the tuned learning rate
+# Set the optimizer with the TUNED learning rate
 optimizer = tf.keras.optimizers.SGD(learning_rate=4e-6, momentum=0.9)
 
 # Set the training parameters
