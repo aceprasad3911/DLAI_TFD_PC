@@ -112,15 +112,20 @@ def create_uncompiled_model():
         tf.keras.Model: uncompiled model
     """
     ### START CODE HERE ###
+    model = tf.keras.Sequential([
+        tf.keras.layers.Input(shape=(WINDOW_SIZE, 1)),
 
-    model = tf.keras.models.Sequential([
-        tf.keras.Input((WINDOW_SIZE, 1)),
-        tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(32, return_sequences=True)),
-        tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(32)),
-        tf.keras.layers.Dense(1),
-        tf.keras.layers.Lambda(lambda x: x * 100.0)
+        # Convolutional block for local feature extraction
+        tf.keras.layers.Conv1D(filters=128, kernel_size=5, strides=1, padding='causal', activation='relu'),
+        tf.keras.layers.Conv1D(filters=64, kernel_size=3, strides=1, padding='causal', activation='relu'),
+
+        # Recurrent block for temporal patterns
+        tf.keras.layers.LSTM(64, return_sequences=False),
+
+        # Dense layers for regression output
+        tf.keras.layers.Dense(32, activation='relu'),
+        tf.keras.layers.Dense(1)  # final output
     ])
-
     ### END CODE HERE ###
 
     return model
@@ -158,7 +163,7 @@ def adjust_learning_rate(model):
         tf.keras.callbacks.History: callback history
     """
 
-    lr_schedule = tf.keras.callbacks.LearningRateScheduler(lambda epoch: 1e-6 * 10 ** (epoch / 20))
+    lr_schedule = tf.keras.callbacks.LearningRateScheduler(lambda epoch: 1e-5 * 10 ** (epoch / 20))
 
     ### START CODE HERE ###
 
@@ -198,7 +203,7 @@ def create_model():
     ### START CODE HERE ###
 
     model.compile(loss=tf.keras.losses.MeanSquaredError(),
-                  optimizer=tf.keras.optimizers.Adam(learning_rate=1e-4),
+                  optimizer=tf.keras.optimizers.Adam(learning_rate=1e-3),
                   metrics=["mae"])
 
     ### END CODE HERE ###

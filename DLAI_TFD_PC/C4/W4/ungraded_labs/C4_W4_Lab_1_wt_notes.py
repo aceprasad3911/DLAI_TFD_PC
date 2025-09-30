@@ -228,7 +228,7 @@ model = tf.keras.models.Sequential([
     tf.keras.Input(shape=(window_size, 1)),
     tf.keras.layers.Conv1D(filters=64, kernel_size=3,
                            strides=1, padding="causal",
-                           activation="relu"),
+                           activation="relu"),  # Conv1D layer added to learn 64 filters (3 number window)
     tf.keras.layers.LSTM(64, return_sequences=True),
     tf.keras.layers.LSTM(64),
     tf.keras.layers.Dense(1),
@@ -282,7 +282,7 @@ tf.keras.backend.clear_session()
 # Reset the weights
 model.set_weights(init_weights)
 
-# Set the learning rate
+# Set the learning rate (based on graph plotting loss)
 learning_rate = 1e-7
 
 # Set the optimizer

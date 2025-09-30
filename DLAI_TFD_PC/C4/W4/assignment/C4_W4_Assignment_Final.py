@@ -33,10 +33,10 @@ def parse_data_from_file(filename):
         (np.ndarray, np.ndarray): arrays of timestamps and values of the time series
     """
     ### START CODE HERE
-    # Load the temperatures using np.loadtxt. Remember you want to skip the first
-    # row, since it's headers. Make sure to use the correct column of the csv file.
-    temperatures = None
-    times = None  # Create the time steps.
+    # Load the temperatures from column 1 (skip header row)
+    temperatures = np.loadtxt(filename, delimiter=",", skiprows=1, usecols=1)
+    # Generate integer time steps from 0 up to len(temperatures)-1
+    times = np.arange(len(temperatures))
     ### END CODE HERE
 
     return times, temperatures
@@ -93,9 +93,14 @@ def create_uncompiled_model():
     """
     ### START CODE HERE ###
 
-    model = tf.keras.models.Sequential([
-        tf.keras.Input(None),  # Set the correct input shape for the model
-
+    model = tf.keras.Sequential([
+        tf.keras.layers.Input(shape=(window_size, 1)),
+        # A small 1D-conv block for sequence representation
+        tf.keras.layers.Conv1D(filters=32, kernel_size=5, strides=1, padding='causal', activation='relu'),
+        tf.keras.layers.Conv1D(filters=16, kernel_size=3, strides=1, padding='causal', activation='relu'),
+        tf.keras.layers.GlobalAveragePooling1D(),
+        tf.keras.layers.Dense(16, activation='relu'),
+        tf.keras.layers.Dense(1)  # regression output
     ])
 
     ### END CODE HERE ###
