@@ -5,8 +5,7 @@ import pickle
 
 import unittests
 
-## Generating the data
-
+# Generating the data
 def plot_series(time, series, format="-", start=0, end=None):
     """Plot the series"""
     plt.plot(time[start:end], series[start:end], format)
@@ -116,9 +115,10 @@ def create_uncompiled_model():
 
     model = tf.keras.models.Sequential([
         tf.keras.Input((WINDOW_SIZE, 1)),
-        # Your layers go here
-
-        tf.keras.layers.Lambda(None)
+        tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(32, return_sequences=True)),
+        tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(32)),
+        tf.keras.layers.Dense(1),
+        tf.keras.layers.Lambda(lambda x: x * 100.0)
     ])
 
     ### END CODE HERE ###
@@ -162,11 +162,11 @@ def adjust_learning_rate(model):
 
     ### START CODE HERE ###
 
-    # Select your optimizer
-    optimizer = None
-
     # Compile the model passing in the appropriate loss
-    model.compile(loss=None,
+    optimizer = tf.keras.optimizers.SGD(learning_rate=1e-6, momentum=0.9)
+
+    # Compile the model with Huber loss (robust for time series forecasting)
+    model.compile(loss=tf.keras.losses.Huber(),
                   optimizer=optimizer,
                   metrics=["mae"])
 
@@ -197,8 +197,8 @@ def create_model():
 
     ### START CODE HERE ###
 
-    model.compile(loss=None,
-                  optimizer=None,
+    model.compile(loss=tf.keras.losses.MeanSquaredError(),
+                  optimizer=tf.keras.optimizers.Adam(learning_rate=1e-4),
                   metrics=["mae"])
 
     ### END CODE HERE ###
